@@ -1,0 +1,26 @@
+<html>
+  <head></head>
+  <body>
+    <div id="reactive"></div>
+    <div id="comp"></div>
+  </body>
+  <script src="./Dep.js"></script>
+  <script src="Watcher.js"></script>
+  <script src="reactive.js"></script>
+  <script src="Computed.js"></script>
+  <script>
+    const data = {
+      msg: 'xlt'
+    };
+    reactive(data);
+    new Watcher(() => {
+      document.getElementById('reactive').innerHTML = data.msg;
+    });
+
+    const comp = new Computed(() => data.msg + ' is best');
+    
+    new Watcher(() => {
+      document.getElementById('comp').innerHTML = comp.value;
+    });
+  </script>
+</html>
