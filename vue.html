@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="reactive"></div>
+
+  <script>
+    // 最简单的对象劫持
+    function reactive(obj = {}) {
+      // Object.keys(obj).forEach(key => {
+      //   let val = obj[key];
+      //   const dep = new Dep();
+      //   Object.defineProperty(obj, key, {
+      //     get() {
+      //       if (Dep.target) {
+      //         dep.depend(Dep.target);
+      //       }
+      //       console.log(dep);
+      //       return val;
+      //     },
+      //     set(newVal) {
+      //       val = newVal;
+      //       dep.notify();
+      //     }
+      //   })
+      // });
+      const dep = new Map();
+      return new Proxy(obj, {
+        get: (target, key) => {
+          if (!dep.has(key)) dep.set(key, new Dep());
+          if (Dep.target) dep.get(key).depend(Dep.target);
+          return target[key];
+        },
+        set: (target, key, val) => {
+          target[key] = val;
+          dep.get(key).notify();
+        }
+      });
+    }
+    // 依赖收集类
+    class Dep {
+      constructor() {
+        this.dep = new Set();
+      }
+      depend(dep) {
+        this.dep.add(dep);
+      }
+      notify() {
+        this.dep.forEach((watcher) => {
+          watcher.update();
+        })
+      }
+    }
+    Dep.target = null;
+
+    // watcher对象
+    class Watcher {
+      constructor(getter) {
+        this.getter = getter;
+        this.get();
+      }
+      get() {
+        Dep.target = this;
+        this.getter();
+        Dep.target = null;
+      }
+      update() {
+        this.get();
+      }
+    }
+
+    const demo = { a: 1 };
+    const newDemo = reactive(demo);
+    new Watcher(() => {
+      document.getElementById('reactive').innerHTML = newDemo.a;
+    });
+  </script>
+</body>
+</html>
